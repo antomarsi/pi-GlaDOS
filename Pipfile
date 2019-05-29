@@ -4,12 +4,15 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+autopep8 = "*"
+pylint = "*"
 
 [packages]
 gtts = "*"
 pygame = "*"
 opencv-python-headless = "*"
 gpiozero = "*"
+numpy = "*"
 
 [requires]
 python_version = "3.5"
