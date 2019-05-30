@@ -1,16 +1,10 @@
-from pygame import mixer
-from gtts import gTTS
-from io import BytesIO
-from time import sleep
+import pyttsx3
 
-mixer.init()
+engine = pyttsx3.init()
 
-mp3_fp = BytesIO()
-tts = gTTS('hello, this is a test. Oh, and i see you', 'en')
-tts.write_to_fp(mp3_fp)
-mp3_fp.seek(0)
+voices = engine.getProperty('voices')
 
-mixer.music.load(mp3_fp)
-mixer.music.play()
-sleep(5)
+print(voices)
 
+engine.say("I will speak this text")
+engine.runAndWait()

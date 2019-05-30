@@ -6,13 +6,15 @@ verify_ssl = true
 [dev-packages]
 autopep8 = "*"
 pylint = "*"
+pigpio = "*"
 
 [packages]
-gtts = "*"
 pygame = "*"
 opencv-python-headless = "*"
 gpiozero = "*"
 numpy = "*"
+pyttsx3 = "*"
+easing-functions = "*"
 
 [requires]
-python_version = "3.5"
+python_version = "3.6"
