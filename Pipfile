@@ -15,6 +15,7 @@ gpiozero = "*"
 numpy = "*"
 pyttsx3 = "*"
 easing-functions = "*"
+speake3 = "*"
 
 [requires]
 python_version = "3.6"
