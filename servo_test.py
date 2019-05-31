@@ -1,19 +1,29 @@
-from gpiozero import Servo
+from gpiozero import Servo, AngularServo
 from time import sleep
-from easing_functions import *
-import numpy as np
 
-myGPIO = 17
+myGPIO = 18
 
-myCorrection = 0.45
+myCorrection = 0.60
+maxPW = (2.0+myCorrection)/1000
+minPW = (1.0-myCorrection)/1000
 
-maxPW = (2.0 + myCorrection)/1000
-minPW = (1.0 - myCorrection)/1000
+servo = Servo(17, min_pulse_width=minPW, max_pulse_width=maxPW)
+servo2 = Servo(18, min_pulse_width=minPW, max_pulse_width=maxPW)
 
-servo = Servo(myGPIO, min_pulse_width=minPW, max_pulse_width=maxPW)
-a = QuadEaseInOut(start=-1, end = 1, duration = 5)
-x = np.arange(0, 5, 0.5)
-y0 = list(map(a.ease, x))
-for y in y0:
-    print(y)
-    sleep(0.5)
+while True:
+
+    print("Set value range -1.0 to +1.0")
+    for value in range(8, 13):
+        value2 = (float(value)-10)/10
+        servo.value = value2
+        servo2.value = value2
+        print(value2)
+        sleep(0.5)
+
+    print("Set value range +1.0 to -1.0")
+    for value in range(13, 8, -1):
+        value2 = (float(value)-10)/10
+        servo.value = value2
+        servo2.value = value2
+        print(value2)
+        sleep(0.5)

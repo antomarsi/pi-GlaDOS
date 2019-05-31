@@ -11,7 +11,7 @@ from face_tracker import FaceTracker
 class Camera(object):
     def __init__(self, size, color=(0, 255, 0)):
         self.cascade = cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml"
-        self.camera = cv2.VideoCapture(0)
+        self.camera = cv2.VideoCapture(1)
         self.camera.set(3, size[0])
         self.camera.set(4, size[1])
         self.color = color
