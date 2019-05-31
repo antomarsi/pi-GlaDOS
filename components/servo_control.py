@@ -17,10 +17,15 @@ class ServoControl(BaseComponent):
         cube = Cube(20, 20, 20)
         cube.move(20, 20)
         cube.scale((2, 2, 1))
-        cylinder = Sphere(20, 20)
-        cylinder.move(60, 60)
+        shpere = Sphere(20, 20)
+        shpere.move(60, 60)
+
+        cylinder = Cylinder(20, 20)
+        cylinder.move(80, 60)
+
 
         self.projview.add_wireframe('cube', cube)
+        self.projview.add_wireframe('shpere', shpere)
         self.projview.add_wireframe('cylinder', cylinder)
         self.color = (255, 0, 0)
         ### INIT SERVOS ###
@@ -52,7 +57,8 @@ class ServoControl(BaseComponent):
         pass
 
     def update(self, dt: float):
-        self.projview.get_wireframe('cube').rotate((dt, 0, 0))
+        self.projview.get_wireframe('shpere').rotate((dt, dt, dt))
+        self.projview.get_wireframe('cube').rotate((dt, dt, dt))
         self.projview.get_wireframe('cylinder').rotate((dt, dt, dt))
         pass
 
