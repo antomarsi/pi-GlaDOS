@@ -3,7 +3,7 @@ import os
 import pygame
 from pygame.locals import *
 import config as cfg
-from camera import Camera
+from components.camera import Camera
 from components.servo_control import ServoControl
 
 

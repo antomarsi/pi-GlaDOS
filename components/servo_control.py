@@ -1,6 +1,6 @@
 import config
 from utils.components import BaseComponent
-from utils.primitives import Vector2, Cube, Cylinder
+from utils.primitives import Vector2, Cube, Sphere
 from utils.projection_viewer import ProjectionViewer
 from gpiozero.pins.mock import MockFactory, MockPWMPin
 from gpiozero import AngularServo, Device
@@ -17,7 +17,7 @@ class ServoControl(BaseComponent):
         cube = Cube(20, 20, 20)
         cube.move(20, 20)
         cube.scale((2, 2, 1))
-        cylinder = Cylinder(20, 20)
+        cylinder = Sphere(20, 20)
         cylinder.move(60, 60)
 
         self.projview.add_wireframe('cube', cube)
@@ -53,7 +53,7 @@ class ServoControl(BaseComponent):
 
     def update(self, dt: float):
         self.projview.get_wireframe('cube').rotate((dt, 0, 0))
-        self.projview.get_wireframe('cylinder').rotate((dt, 0, 0))
+        self.projview.get_wireframe('cylinder').rotate((dt, dt, dt))
         pass
 
     def render(self, render: pygame.Surface):

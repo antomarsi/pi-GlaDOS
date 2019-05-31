@@ -456,8 +456,8 @@ class Wireframe(metaclass=abc.ABCMeta):
 
     def rotate(self, vector):
         self.transform(self.rotateXMatrix(vector[0]))
-        self.transform(self.rotateXMatrix(vector[1]))
-        self.transform(self.rotateXMatrix(vector[2]))
+        self.transform(self.rotateYMatrix(vector[1]))
+        self.transform(self.rotateZMatrix(vector[2]))
 
     def move(self, x=0, y=0):
         self.x += x
@@ -477,26 +477,25 @@ class Cube(Wireframe):
 
 
 class Line(Wireframe):
-    def __init__(self, width):
-        self.addNodes(np.array([(0, 0), (width, 0]))
+    def __init__(self, width=1):
+        self.addNodes(np.array([(0, 0), (width, 0)]))
         self.addEdges([[0, 1]])
         self.line_radius = 2
-
 
 
 class Cylinder(Wireframe):
     def __init__(self, height=1, radius=1, segments=6):
         super().__init__()
-        theta=2 * math.pi / segments
-        tangetial_factor=math.tan(theta)
-        radial_factor=math.cos(theta)
-        x=radius
-        y=0
-        base_nodes=[]
-        top_nodes=[]
+        theta = 2 * math.pi / segments
+        tangetial_factor = math.tan(theta)
+        radial_factor = math.cos(theta)
+        x = radius
+        y = 0
+        base_nodes = []
+        top_nodes = []
         for i in range(0, segments):
-            tx=-y
-            ty=x
+            tx = -y
+            ty = x
             x += tx * tangetial_factor
             y += ty * tangetial_factor
             x *= radial_factor
@@ -507,8 +506,37 @@ class Cylinder(Wireframe):
         self.addNodes(np.array(base_nodes))
         self.addNodes(np.array(top_nodes))
         self.translate(((radius)*-1, (height/2)*-1, 0))
-        base_edges=[(n, n+1) for n in range(0, segments-1)]
+        base_edges = [(n, n+1) for n in range(0, segments-1)]
         base_edges.append((segments-1, 0))
         self.addEdges(base_edges)
         self.addEdges([(x+segments, y+segments) for (x, y) in base_edges])
         self.addEdges([(n, n+segments) for n in range(0, segments)])
+
+
+class Sphere(Wireframe):
+    def __init__(self, radius=1, segments=10):
+        super().__init__()
+        theta = 2 * math.pi / segments
+        tangetial_factor = math.tan(theta)
+        radial_factor = math.cos(theta)
+        x = radius
+        y = 0
+        array_nodes = [[], [], []]
+        for i in range(0, segments):
+            tx = -y
+            ty = x
+            x += tx * tangetial_factor
+            y += ty * tangetial_factor
+            x *= radial_factor
+            y *= radial_factor
+            array_nodes[0].append([x, 0, y])
+            array_nodes[1].append([x, y, 0])
+            array_nodes[2].append([0, x, y])
+        for n in array_nodes:
+            self.addNodes(np.array(n))
+        for idx, array in enumerate(array_nodes):
+            start = segments * idx
+            edges = [(n, n+1) for n in range(start, start+segments-1)]
+            edges.append((start+segments-1, start))
+            self.addEdges(edges)
+        self.show_nodes = False
