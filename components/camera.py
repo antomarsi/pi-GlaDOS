@@ -6,7 +6,30 @@ import cv2
 import numpy as np
 import os
 from utils.components import BaseComponent
-from face_tracker import FaceTracker
+
+
+class FaceTracker():
+    def __init__(self, cascade_fn, scale=1, scaleFactor=1.3, minSize=(30, 30)):
+        self.prev_angle = 0
+        self.frames = 0
+        self.cascade = cv2.CascadeClassifier(cascade_fn)
+        self.scale = scale
+        self.scaleFactor = scaleFactor
+        self.minSize = minSize
+        self.prev_points = []
+
+    def detect(self, frame):
+        faces = self.cascade.detectMultiScale(
+            frame,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(50, 50),
+            flags=cv2.CASCADE_SCALE_IMAGE
+        )
+        if len(faces) > 0:
+            (x, y, w, h) = faces[0]
+            return pg.Rect(x, y, w, h)
+        return None
 
 
 class Camera(BaseComponent):
@@ -51,18 +74,19 @@ class Camera(BaseComponent):
             pg.draw.rect(self.surface, self.color, self.face, 2)
 
     def get_distance(self):
-      rect = self.surface.get_rect()
-      distance = math.hypot(self.face.centerx-rect.centerx, self.face.centery-rect.centery)
-      print(distance)
-      return distance
+        rect = self.surface.get_rect()
+        distance = math.hypot(self.face.centerx-rect.centerx,
+                              self.face.centery-rect.centery)
+        print(distance)
+        return distance
 
     def draw_deadzone(self):
         pg.draw.circle(self.surface, self.deadzone_color, self.surface.get_rect().center,
                        int(self.deadzone_radius), 1)
         if self.face is not None:
-            color=(0, 0, 255)
+            color = (0, 0, 255)
             if self.get_distance() > self.deadzone_radius:
-              color = (255, 0, 0)
+                color = (255, 0, 0)
             pg.draw.line(self.surface, color,
                          self.face.center, self.surface.get_rect().center, 1)
 
