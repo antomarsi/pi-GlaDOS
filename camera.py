@@ -5,13 +5,14 @@ import math
 import cv2
 import numpy as np
 import os
+from utils.components import BaseComponent
 from face_tracker import FaceTracker
 
 
-class Camera(object):
-    def __init__(self, size, color=(0, 255, 0)):
+class Camera(BaseComponent):
+    def __init__(self, size, color=(0, 255, 0), camera_index=0):
         self.cascade = cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml"
-        self.camera = cv2.VideoCapture(1)
+        self.camera = cv2.VideoCapture(camera_index)
         self.camera.set(3, size[0])
         self.camera.set(4, size[1])
         self.color = color
