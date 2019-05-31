@@ -1,6 +1,6 @@
 import config
 from utils.components import BaseComponent
-from utils.primitives import Vector2, Cube, Sphere
+from utils.primitives import Vector2, Cube, Sphere, Cylinder, Pyramid
 from utils.projection_viewer import ProjectionViewer
 from gpiozero.pins.mock import MockFactory, MockPWMPin
 from gpiozero import AngularServo, Device
@@ -10,23 +10,26 @@ import os
 
 
 class ServoControl(BaseComponent):
-    def __init__(self, size=(200, 100), gpio1=18, gpio2=17, angles=(-42, 44)):
+    def __init__(self, size=(400, 100), gpio1=18, gpio2=17, angles=(-42, 44)):
         self.surface = pygame.Surface(size, flags=SRCALPHA)
         self.font = pygame.font.SysFont(None, 16)
-        self.projview = ProjectionViewer(200, 200)
+        self.projview = ProjectionViewer(400, 200)
         cube = Cube(20, 20, 20)
-        cube.move(20, 20)
+        cube.move(40, 60)
         cube.scale((2, 2, 1))
         shpere = Sphere(20, 20)
-        shpere.move(60, 60)
+        shpere.move(100, 60)
 
         cylinder = Cylinder(20, 20)
-        cylinder.move(80, 60)
+        cylinder.move(160, 60)
 
+        pyramid = Pyramid(20, 20, 20)
+        pyramid.move(220, 60)
 
         self.projview.add_wireframe('cube', cube)
         self.projview.add_wireframe('shpere', shpere)
         self.projview.add_wireframe('cylinder', cylinder)
+        self.projview.add_wireframe('pyramid', pyramid)
         self.color = (255, 0, 0)
         ### INIT SERVOS ###
         if config.MOCK_GPIO:
@@ -60,6 +63,7 @@ class ServoControl(BaseComponent):
         self.projview.get_wireframe('shpere').rotate((dt, dt, dt))
         self.projview.get_wireframe('cube').rotate((dt, dt, dt))
         self.projview.get_wireframe('cylinder').rotate((dt, dt, dt))
+        self.projview.get_wireframe('pyramid').rotate((dt, dt, dt))
         pass
 
     def render(self, render: pygame.Surface):

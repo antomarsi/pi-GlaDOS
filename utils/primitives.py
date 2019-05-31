@@ -505,12 +505,12 @@ class Cylinder(Wireframe):
 
         self.addNodes(np.array(base_nodes))
         self.addNodes(np.array(top_nodes))
-        self.translate(((radius)*-1, (height/2)*-1, 0))
         base_edges = [(n, n+1) for n in range(0, segments-1)]
         base_edges.append((segments-1, 0))
         self.addEdges(base_edges)
         self.addEdges([(x+segments, y+segments) for (x, y) in base_edges])
         self.addEdges([(n, n+segments) for n in range(0, segments)])
+        self.translate(((radius/4)*-1, (height/2)*-1, (radius/4)*-1))
 
 
 class Sphere(Wireframe):
@@ -540,3 +540,16 @@ class Sphere(Wireframe):
             edges.append((start+segments-1, start))
             self.addEdges(edges)
         self.show_nodes = False
+
+
+class Pyramid(Wireframe):
+    def __init__(self, size_x=1, size_y=1, size_z=1):
+        super().__init__()
+        cube_nodes = [(x, 0, z) for x in (0, size_x)
+                      for z in (0, size_z)]
+        cube_nodes.append((size_x/2, size_y, size_y/2))
+        self.addNodes(np.array(cube_nodes))
+        self.addEdges([(0,1), (1,3), (3,2), (2,0)])
+        self.addEdges([(n, 4) for n in range(0, 4)])
+
+        self.translate(((size_x/2)*-1, (size_y/2)*-1, (size_z/2)*-1))
