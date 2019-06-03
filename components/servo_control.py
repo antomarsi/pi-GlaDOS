@@ -1,6 +1,6 @@
 import config
-from utils.components import BaseComponent
-from utils.primitives import Vector2, Cube, Sphere, Cylinder, Pyramid
+from utils.components import BaseComponent, WireFrameComponent
+from utils.primitives import Vector2, Cube, Plane, Sphere
 from utils.projection_viewer import ProjectionViewer
 from gpiozero.pins.mock import MockFactory, MockPWMPin
 from gpiozero import AngularServo, Device
@@ -10,26 +10,11 @@ import os
 
 
 class ServoControl(BaseComponent):
-    def __init__(self, size=(400, 100), gpio1=18, gpio2=17, angles=(-42, 44)):
+    def __init__(self, size=(400, 100), gpio1=18, gpio2=17, angles=(-42, 44), position=(0, 0)):
+        super().__init__(position)
         self.surface = pygame.Surface(size, flags=SRCALPHA)
-        self.font = pygame.font.SysFont(None, 16)
-        self.projview = ProjectionViewer(400, 200)
-        cube = Cube(20, 20, 20)
-        cube.move(40, 60)
-        cube.scale((2, 2, 1))
-        shpere = Sphere(20, 20)
-        shpere.move(100, 60)
-
-        cylinder = Cylinder(20, 20)
-        cylinder.move(160, 60)
-
-        pyramid = Pyramid(20, 20, 20)
-        pyramid.move(220, 60)
-
-        self.projview.add_wireframe('cube', cube)
-        self.projview.add_wireframe('shpere', shpere)
-        self.projview.add_wireframe('cylinder', cylinder)
-        self.projview.add_wireframe('pyramid', pyramid)
+        self.font = pygame.font.SysFont(None, 28)
+        self.projview = ProjectionViewer(size)
         self.color = (255, 0, 0)
         ### INIT SERVOS ###
         if config.MOCK_GPIO:
@@ -38,6 +23,12 @@ class ServoControl(BaseComponent):
             gpio1, min_angle=angles[0], max_angle=angles[1])
         self.servo_x = AngularServo(
             gpio2, min_angle=angles[0], max_angle=angles[1])
+        self.create_wireframe_model()
+
+    def create_wireframe_model(self):
+        base = WireFrameComponent((0, 0), Sphere(50))
+        self.projview.add_wireframe('base', base)
+        self.projview.get_wireframe('base').move(60,60)
 
     def clamped_servo_x(self, value: float):
         return max(self.servo_x.min_angle, min(value, self.servo_x.max_angle))
@@ -60,26 +51,10 @@ class ServoControl(BaseComponent):
         pass
 
     def update(self, dt: float):
-        self.projview.get_wireframe('shpere').rotate((dt, dt, dt))
-        self.projview.get_wireframe('cube').rotate((dt, dt, dt))
-        self.projview.get_wireframe('cylinder').rotate((dt, dt, dt))
-        self.projview.get_wireframe('pyramid').rotate((dt, dt, dt))
+        self.projview.get_wireframe("base").rotate((dt, dt, dt))
         pass
 
     def render(self, render: pygame.Surface):
         self.surface.fill((0, 0, 0, 0))
-        # Circle X
-        vecX = Vector2(25, 25)
-        vecX.rotate(self.servo_x.value)
-        pygame.draw.circle(self.surface, (0, 254, 255), (25, 25), 25, 1)
-        text_surf = self.font.render(
-            "X: %.3f" % (self.servo_x.value), True, (0, 254, 255))
-        self.surface.blit(text_surf, (0, 50))
-
-        # Circle Y
-        pygame.draw.circle(self.surface, (232, 127, 0), (80, 25), 25, 1)
-        text_surf = self.font.render(
-            "Y: %.3f" % (self.servo_y.value), True, (232, 127, 0))
-        self.surface.blit(text_surf, (55, 50))
-        render.blit(self.surface, (10, 10))
-        render.blit(self.projview.render(), (200, 200))
+        self.surface.blit(self.projview.render(), (0, 0))
+        render.blit(self.surface, (self.x, self.y))

@@ -1,4 +1,4 @@
-import pygame as pg
+import pygame
 from pygame.locals import *
 import time
 import math
@@ -28,12 +28,13 @@ class FaceTracker():
         )
         if len(faces) > 0:
             (x, y, w, h) = faces[0]
-            return pg.Rect(x, y, w, h)
+            return pygame.Rect(x, y, w, h)
         return None
 
 
 class Camera(BaseComponent):
-    def __init__(self, size, color=(0, 255, 0), camera_index=0):
+    def __init__(self, size, color=(0, 255, 0), camera_index=0, position=(0, 0)):
+        super().__init__(position)
         self.cascade = cv2.data.haarcascades + "haarcascade_frontalface_alt2.xml"
         self.camera = cv2.VideoCapture(camera_index)
         self.camera.set(3, size[0])
@@ -47,6 +48,7 @@ class Camera(BaseComponent):
         self.face_timer = 0
         self.face_time = 1
         self.deadzone_radius = size[0]/8
+        self.font = pygame.font.SysFont(None, 36)
 
     def update(self, dt):
         ret, frame = self.camera.read()
@@ -62,7 +64,7 @@ class Camera(BaseComponent):
             self.face_timer += dt
         frame = np.rot90(frame)
         frame = cv2.flip(frame, 0)
-        self.surface = pg.surfarray.make_surface(frame)
+        self.surface = pygame.surfarray.make_surface(frame)
 
     def check_if_face_deadzone(self):
         if self.face is None:
@@ -71,28 +73,31 @@ class Camera(BaseComponent):
 
     def draw_face(self):
         if self.face is not None:
-            pg.draw.rect(self.surface, self.color, self.face, 2)
+            pygame.draw.rect(self.surface, self.color, self.face, 2)
+            text_surf = self.font.render(
+                "WIDTH: %d" % self.face.width, False, (0, 0, 255))
+            self.surface.blit(text_surf, (self.face.centerx -
+                                          text_surf.get_width()/2, self.face.bottom + 10))
 
     def get_distance(self):
         rect = self.surface.get_rect()
         distance = math.hypot(self.face.centerx-rect.centerx,
                               self.face.centery-rect.centery)
-        print(distance)
         return distance
 
     def draw_deadzone(self):
-        pg.draw.circle(self.surface, self.deadzone_color, self.surface.get_rect().center,
-                       int(self.deadzone_radius), 1)
+        pygame.draw.circle(self.surface, self.deadzone_color, self.surface.get_rect().center,
+                           int(self.deadzone_radius), 1)
         if self.face is not None:
             color = (0, 0, 255)
             if self.get_distance() > self.deadzone_radius:
                 color = (255, 0, 0)
-            pg.draw.line(self.surface, color,
-                         self.face.center, self.surface.get_rect().center, 1)
+            pygame.draw.line(self.surface, color,
+                             self.face.center, self.surface.get_rect().center, 1)
 
     def render(self, render):
         if self.surface is None:
             return
         self.draw_face()
         self.draw_deadzone()
-        render.blit(self.surface, (0, 0))
+        render.blit(self.surface, (self.x, self.y))

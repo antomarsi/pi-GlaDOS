@@ -5,7 +5,7 @@ text = '<prosody pitch=\"-2\">Hello,</prosody> <prosody pitch=\"+31%\">and,</pro
 
 
 engine = speake3.Speake()  # Initialize the speake engine
-engine.set('voice', 'en+f3')
+engine.set('voice', 'pt')
 engine.set('speed', '180')
 engine.set('markup')
 engine.say(text)  # String to be spoken

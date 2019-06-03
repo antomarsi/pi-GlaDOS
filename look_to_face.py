@@ -81,9 +81,11 @@ class App(object):
 def main():
     app = App()
     app.add_component('camera', Camera(
-        app.screen.get_size(), camera_index=cfg.CAMERA_INDEX))
-    app.add_component('servo', ServoControl())
-    app.remove_component('camera')
+        (cfg.CAMERA_WIDTH, cfg.CAMERA_HEIGHT),
+        camera_index=cfg.CAMERA_INDEX))
+    app.add_component('servo', ServoControl(
+        size=(cfg.WIDTH-cfg.CAMERA_WIDTH, cfg.HEIGHT),
+        position=(cfg.CAMERA_WIDTH+5, 5)))
     app.main_loop()
     pygame.quit()
     sys.exit()

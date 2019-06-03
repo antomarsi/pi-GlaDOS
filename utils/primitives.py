@@ -371,16 +371,8 @@ class Edge(object):
 
 class Wireframe(metaclass=abc.ABCMeta):
     def __init__(self):
-        self.x = 0
-        self.y = 0
         self.nodes = np.zeros((0, 4))
         self.edges = []
-        self.show_edges = True
-        self.show_nodes = True
-        self.node_radius = 4
-        self.line_radius = 1
-        self.nodes_color = (255, 255, 255)
-        self.edges_color = (200, 200, 200)
 
     def addNodes(self, node_array):
         ones_column = np.ones((len(node_array), 1))
@@ -459,11 +451,6 @@ class Wireframe(metaclass=abc.ABCMeta):
         self.transform(self.rotateYMatrix(vector[1]))
         self.transform(self.rotateZMatrix(vector[2]))
 
-    def move(self, x=0, y=0):
-        self.x += x
-        self.y += y
-
-
 class Cube(Wireframe):
     def __init__(self, size_x=1, size_y=1, size_z=1):
         super().__init__()
@@ -539,7 +526,6 @@ class Sphere(Wireframe):
             edges = [(n, n+1) for n in range(start, start+segments-1)]
             edges.append((start+segments-1, start))
             self.addEdges(edges)
-        self.show_nodes = False
 
 
 class Pyramid(Wireframe):
@@ -553,3 +539,13 @@ class Pyramid(Wireframe):
         self.addEdges([(n, 4) for n in range(0, 4)])
 
         self.translate(((size_x/2)*-1, (size_y/2)*-1, (size_z/2)*-1))
+
+class Plane(Wireframe):
+    def __init__(self, size_x=1, size_z=1):
+        super().__init__()
+        cube_nodes = [(x, 0, z) for x in (0, size_x)
+                      for z in (0, size_z)]
+        self.addNodes(np.array(cube_nodes))
+        self.addEdges([(0,1), (1,2), (1,3), (3,2), (2,0)])
+
+        self.translate(((size_x/2)*-1, 0, (size_z/2)*-1))
