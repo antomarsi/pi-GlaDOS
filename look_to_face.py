@@ -3,7 +3,7 @@ import os
 import pygame
 from pygame.locals import *
 import config as cfg
-from components.camera import Camera
+from camera.camera import Camera
 from components.servo_control import ServoControl
 
 
@@ -83,7 +83,7 @@ def main():
     app.add_component('camera', Camera(
         app.screen.get_size(), camera_index=cfg.CAMERA_INDEX))
     app.add_component('servo', ServoControl())
-    app.remove_component('camera')
+    app.remove_component('servo')
     app.main_loop()
     pygame.quit()
     sys.exit()
