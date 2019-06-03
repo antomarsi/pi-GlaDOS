@@ -5,6 +5,7 @@ from pygame.locals import *
 import config as cfg
 from camera.camera import Camera
 from components.servo_control import ServoControl
+from arm_visualizer.arm_visualizer import ArmVisualizer
 
 
 class App(object):
@@ -80,10 +81,16 @@ class App(object):
 
 def main():
     app = App()
+
     app.add_component('camera', Camera(
         app.screen.get_size(), camera_index=cfg.CAMERA_INDEX))
+
     app.add_component('servo', ServoControl())
+
+    app.add_component('arm', ArmVisualizer(rect=pg.Rect()))
+
     app.remove_component('servo')
+    app.remove_component('camera')
     app.main_loop()
     pygame.quit()
     sys.exit()

@@ -1,20 +1,23 @@
 import abc
 import pygame
+from uuid import uuid4
 
 
 class BaseComponent(metaclass=abc.ABCMeta):
     def __init__(self):
-        self.childrens = []
+        self.childrens = {}
 
-    def addChild(self, child):
-        self.childrens.append(child)
+    def add_child(self, child, name=None):
+        if name is None:
+            name = uuid4()
+        self.childrens[name] = child
 
     def update_childrens(self, dt: float):
-        for child in self.childrens:
+        for child in self.childrens.values():
             child.update(dt)
 
     def render_childrens(self, render: pygame.Surface):
-        for child in self.childrens:
+        for child in self.childrens.values():
             child.render(render)
 
     @abc.abstractmethod
@@ -31,7 +34,7 @@ class BaseComponent(metaclass=abc.ABCMeta):
 
 class InputComponent(BaseComponent):
     def process_input_childrens(self, events, keys):
-        for child in self.childrens:
+        for child in self.childrens.values():
             child.process_input(events, keys)
 
     @abc.abstractmethod
