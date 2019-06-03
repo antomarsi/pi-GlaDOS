@@ -87,7 +87,7 @@ def main():
 
     app.add_component('servo', ServoControl())
 
-    app.add_component('arm', ArmVisualizer(rect=pg.Rect()))
+    app.add_component('arm', ArmVisualizer())
 
     app.remove_component('servo')
     app.remove_component('camera')
