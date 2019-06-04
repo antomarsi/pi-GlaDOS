@@ -10,6 +10,7 @@ engine.set('speed', '180')
 engine.set('markup')
 engine.say(text)  # String to be spoken
 engine.talkback()
+
 # espeak -m -ven+f2 -s 180 -p 60 "<speak><s><prosody rate=\"x-slow\">Oh</prosody> <break time=\"1s\"/>, <prosody rate=\"slow\">i</prosody> <prosody rate=\"slow\">see</prosody> <prosody rate=\"slow\">you</prosody></s></speak>"
 #   for a in `cat`; do
 #     V=$(((($RANDOM) % 100) - 50))

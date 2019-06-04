@@ -3,8 +3,9 @@ import os
 import pygame
 from pygame.locals import *
 import config as cfg
-from components.camera import Camera
+from camera.camera import Camera
 from components.servo_control import ServoControl
+from arm_visualizer.arm_visualizer import ArmVisualizer
 
 
 class App(object):
@@ -80,6 +81,7 @@ class App(object):
 
 def main():
     app = App()
+
     app.add_component('camera', Camera(
         (cfg.CAMERA_WIDTH, cfg.CAMERA_HEIGHT),
         camera_index=cfg.CAMERA_INDEX))
