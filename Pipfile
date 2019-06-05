@@ -16,6 +16,8 @@ numpy = "*"
 pyttsx3 = "*"
 easing-functions = "*"
 speake3 = "*"
+picamera = {version = "*",sys_platform = "== 'armv7l'"}
+flask-restplus = "*"
 
 [requires]
 python_version = "3.6"

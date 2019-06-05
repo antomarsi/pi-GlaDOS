@@ -16,8 +16,7 @@ class ProjectionViewer(object):
             (self.width, self.height), flags=SRCALPHA)
         self.background = background
         self.wireframes: Dict[str, WireFrameComponent] = {}
-        if center:
-            self.render_pivot = (self.width/2, self.height/2)
+        self.center = center
 
     def moveAll(self, x, y):
         for wireframe in self.wireframes.values():
@@ -27,6 +26,9 @@ class ProjectionViewer(object):
         return self.wireframes[name]
 
     def add_wireframe(self, name, wireframe: WireFrameComponent):
+        if self.center:
+            wireframe.x = int(self.width/2)
+            wireframe.y = int(self.height/2)
         self.wireframes[name] = wireframe
 
     def remove_wireframe(self, name):

@@ -26,9 +26,11 @@ class BaseComponent(metaclass=abc.ABCMeta):
     def get_global_position(self):
         return (self.get_global_x(), self.get_global_y())
 
-    def addChild(self, child):
-        self.parent = self
-        self.childrens.append(child)
+    def add_child(self, child, name=None):
+        child.parent = self
+        if name is None:
+            name = uuid4()
+        self.childrens[name] = child
 
     def update_childrens(self, dt: float):
         for child in self.childrens.values():
@@ -71,6 +73,7 @@ class WireFrameComponent(BaseComponent):
         self.line_radius = 1
         self.nodes_color = (255, 255, 255)
         self.edges_color = (200, 200, 200)
+        self.moved = (0, 0, 0)
 
     def rotate(self, *args, **kwargs):
         self.wireframe.rotate(*args, **kwargs)
@@ -81,15 +84,14 @@ class WireFrameComponent(BaseComponent):
     def translate(self, *args, **kwargs):
         self.wireframe.translate(*args, **kwargs)
 
-    def move(self, x_or_y, y=None):
-        if y is None:
-            self.x += x_or_y[0]
-            self.y += x_or_y[1]
-        else:
-            self.x += x_or_y
-            self.y = y
+    def move(self, x, y=0, z=0):
+        self.moved = (self.moved[0]+x, self.moved[1]+y, self.moved[2]+z)
+
+    def get_reverse_move(self):
+        return (-self.moved[0], -self.moved[1], -self.moved[2])
 
     def render(self, render: pygame.Surface):
+        self.wireframe.translate(self.moved)
         if self.show_edges:
             for n1, n2 in self.wireframe.edges:
                 startpos = self.wireframe.nodes[n1][:2] + \
@@ -104,6 +106,7 @@ class WireFrameComponent(BaseComponent):
                         node[0]) + self.get_global_x(), int(node[1]) + self.get_global_y()), self.node_radius, 0)
         for child in self.childrens:
             self.render(render)
+        self.wireframe.translate(self.get_reverse_move())
 
     def update(self, dt):
         pass

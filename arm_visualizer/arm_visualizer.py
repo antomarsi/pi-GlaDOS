@@ -1,25 +1,29 @@
 import pygame as pg
 from pygame.locals import *
-from utils.components import BaseComponent
+from utils.components import BaseComponent, WireFrameComponent
+from utils.primitives import Plane, Cube
+from utils.projection_viewer import ProjectionViewer
+from gpiozero import AngularServo
 
 
 class ArmVisualizer(BaseComponent):
-    def __init__(self, rect=pg.Rect(100, 100, 100, 100), background_color=(52, 62, 80)):
-        super().__init__()
-        self.rect = rect
-        self.surface = pg.Surface((200, 200), flags=SRCALPHA)
-        self.background_color = background_color
-        self.border = pg.Surface(self.rect.size, flags=SRCALPHA)
-        pg.draw.rect(self.border, (254, 158, 12), pg.Rect(
-            3, 3, self.rect.width-6, self.rect.height-6), 2)
+    def __init__(self, position=(0,0), size=(100, 100), background_color=(35, 41, 53)):
+        super().__init__(position=position)
+        self.projection = ProjectionViewer(size, background=background_color, center=True)
+        # Lets use 4 pins: 17, 18, 22 and 23
+        self.base = WireFrameComponent((0,0), Plane(100, 100))
+        self.projection.add_wireframe("base", self.base)
+
+        self.motor_base = WireFrameComponent((0,0), Cube(20, 40, 40))
+        self.motor_base.move(20, 0)
+        self.projection.add_wireframe("motor_base", self.motor_base)
+    
 
     def update(self, dt: float):
+        self.motor_base.rotate((dt, dt, dt))
+        self.base.rotate((dt, dt, dt))
         self.update_childrens(dt)
+    
 
     def render(self, render: pg.Surface):
-        self.surface.fill(self.background_color)
-        self.render_childrens(self.surface)
-        scaled = pg.transform.scale(
-            self.surface, (self.rect.width, self.rect.height))
-        scaled.blit(self.border, (0, 0))
-        render.blit(scaled, (self.rect.x, self.rect.y))
+        render.blit(self.projection.render(), self.get_global_position())

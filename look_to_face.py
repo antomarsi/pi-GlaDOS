@@ -5,7 +5,6 @@ from pygame.locals import *
 import config as cfg
 from camera.camera import Camera
 from components.servo_control import ServoControl
-from arm_visualizer.arm_visualizer import ArmVisualizer
 
 
 class App(object):
@@ -86,7 +85,7 @@ def main():
         (cfg.CAMERA_WIDTH, cfg.CAMERA_HEIGHT),
         camera_index=cfg.CAMERA_INDEX))
     app.add_component('servo', ServoControl(
-        size=(cfg.WIDTH-cfg.CAMERA_WIDTH, cfg.HEIGHT),
+        size=(cfg.WIDTH-cfg.CAMERA_WIDTH-10, cfg.HEIGHT-10),
         position=(cfg.CAMERA_WIDTH+5, 5)))
     app.main_loop()
     pygame.quit()

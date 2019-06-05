@@ -7,28 +7,29 @@ from gpiozero import AngularServo, Device
 import pygame
 from pygame.locals import *
 import os
+from arm_visualizer.arm_visualizer import ArmVisualizer
 
 
 class ServoControl(BaseComponent):
-    def __init__(self, size=(400, 100), gpio1=18, gpio2=17, angles=(-42, 44), position=(0, 0)):
+    def __init__(self, size=(400, 100), position=(0, 0)):
         super().__init__(position)
         self.surface = pygame.Surface(size, flags=SRCALPHA)
         self.font = pygame.font.SysFont(None, 28)
         self.projview = ProjectionViewer(size)
         self.color = (255, 0, 0)
         ### INIT SERVOS ###
+        gpio1 = 18
+        gpio2 = 17
+        angles = (-42, 44)
         if config.MOCK_GPIO:
             Device.pin_factory = MockFactory(pin_class=MockPWMPin)
         self.servo_y = AngularServo(
             gpio1, min_angle=angles[0], max_angle=angles[1])
         self.servo_x = AngularServo(
             gpio2, min_angle=angles[0], max_angle=angles[1])
-        self.create_wireframe_model()
 
-    def create_wireframe_model(self):
-        base = WireFrameComponent((0, 0), Sphere(50))
-        self.projview.add_wireframe('base', base)
-        self.projview.get_wireframe('base').move(60,60)
+        self.add_child(name="visualizer", child=ArmVisualizer(
+            position=(5, 5), size=(size[0]-10, (size[1]/2))))
 
     def clamped_servo_x(self, value: float):
         return max(self.servo_x.min_angle, min(value, self.servo_x.max_angle))
@@ -51,10 +52,11 @@ class ServoControl(BaseComponent):
         pass
 
     def update(self, dt: float):
-        self.projview.get_wireframe("base").rotate((dt, dt, dt))
+        self.update_childrens(dt)
         pass
 
     def render(self, render: pygame.Surface):
         self.surface.fill((0, 0, 0, 0))
         self.surface.blit(self.projview.render(), (0, 0))
-        render.blit(self.surface, (self.x, self.y))
+        render.blit(self.surface, self.get_global_position())
+        self.render_childrens(render)
