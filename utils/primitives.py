@@ -464,10 +464,10 @@ class Cube(Wireframe):
 
 
 class Line(Wireframe):
-    def __init__(self, width=1):
-        self.addNodes(np.array([(0, 0), (width, 0)]))
+    def __init__(self, x=1, y=0, z=0):
+        super().__init__()
+        self.addNodes(np.array([(0, 0, 0), (x, y, z)]))
         self.addEdges([[0, 1]])
-        self.line_radius = 2
 
 
 class Cylinder(Wireframe):
