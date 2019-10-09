@@ -17,6 +17,8 @@ picamera = {version = "*",sys_platform = "== 'armv7l'"}
 flask = "*"
 flask-socketio = "*"
 flask-cors = "*"
+redis = "*"
+eventlet = "*"
 
 [requires]
 python_version = "3.6"
