@@ -14,6 +14,9 @@ opencv-python-headless = "*"
 gpiozero = "*"
 numpy = "*"
 picamera = {version = "*",sys_platform = "== 'armv7l'"}
+flask = "*"
+flask-socketio = "*"
+flask-cors = "*"
 
 [requires]
 python_version = "3.6"

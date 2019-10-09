@@ -112,6 +112,18 @@ class WireFrameComponent(BaseComponent):
     def local_rotate(self, x, y=0, z=0):
         self.local_rotation = (self.local_rotation[0]+x, self.local_rotation[1]+y, self.local_rotation[2]+z)
 
+    def set_local_rotation(self, x, y=0, z=0):
+        self.local_rotation = (x, y, z)
+
+    def set_local_translation(self, x, y=0, z=0):
+        self.local_translation = (x, y, z)
+
+    def reset_rotation(self):
+        self.local_rotation = (0, 0, 0)
+
+    def reset_translation(self):
+        self.local_translation = (0, 0, 0)
+
     def get_local_translation(self):
         value = self.local_translation
         if self.parent != None and type(self.parent) is type(self):

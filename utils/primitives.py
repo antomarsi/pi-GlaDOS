@@ -447,9 +447,14 @@ class Wireframe(metaclass=abc.ABCMeta):
         self.transform(matrix)
 
     def rotate(self, vector):
-        self.transform(self.rotateXMatrix(vector[0]))
-        self.transform(self.rotateYMatrix(vector[1]))
-        self.transform(self.rotateZMatrix(vector[2]))
+        degree_vector = (
+            math.radians(vector[0]),
+            math.radians(vector[1]),
+            math.radians(vector[2]),
+        )
+        self.transform(self.rotateXMatrix(degree_vector[0]))
+        self.transform(self.rotateYMatrix(degree_vector[1]))
+        self.transform(self.rotateZMatrix(degree_vector[2]))
 
 class Cube(Wireframe):
     def __init__(self, size_x=1, size_y=1, size_z=1):
