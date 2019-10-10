@@ -19,6 +19,9 @@ flask-socketio = "*"
 flask-cors = "*"
 redis = "*"
 eventlet = "*"
+asyncio = "*"
+websockets = "*"
+urwid = "*"
 
 [requires]
 python_version = "3.6"
