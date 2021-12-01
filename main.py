@@ -1,99 +1,79 @@
-import sys
+from pocketsphinx import LiveSpeech, get_model_path
+from dotenv import load_dotenv
+import speech_recognition as sr
 import os
-import pygame
-from pygame.locals import *
-import config as cfg
-from utils.colors import COLORS
-from UI.camera import Camera
-from UI.arm_visualizer import ArmVisualizer
 
 
-class App(object):
-    def __init__(self):
-        mode_flags = pygame.DOUBLEBUF
-        if cfg.FULLSCREEN:
-            mode_flags |= pygame.FULLSCREEN
-        os.environ['SDL_VIDEO_CENTERED'] = '1'
-        pygame.init()
-        pygame.display.set_caption(cfg.DEFAULT_CAPTION)
-        self.screen = pygame.display.set_mode(
-            (cfg.WIDTH, cfg.HEIGHT), mode_flags)
+load_dotenv()
 
-        self.screen_rect = self.screen.get_rect()
-        self.components = {}
-        self.clock = pygame.time.Clock()
-        self.fps = cfg.FRAMERATE
-        self.done = False
-        self.keys = pygame.key.get_pressed()
-        self.show_fps = False
-        self.background_color = COLORS[0]
-
-    def add_component(self, name, component):
-        self.components[name] = component
-
-    def remove_component(self, name):
-        self.components[name].terminate()
-        del self.components[name]
-
-    def event_loop(self):
-        pressed_keys = pygame.key.get_pressed()
-        filtered_events = []
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                self.done = True
-            elif event.type == KEYDOWN:
-                if event.key == K_F3:
-                    self.show_fps = not self.show_fps
-                elif event.key == K_ESCAPE:
-                    self.done = True
-            filtered_events.append(event)
-
-    def update(self, dt):
-        """
-        Update must acccept and pass dt to all elements that need to update.
-        """
-        for cp in self.components.values():
-            cp.update(dt)
-        pass
-
-    def render(self):
-        """
-        Render all needed elements and update the display.
-        """
-        self.screen.fill(self.background_color)
-        for cp in self.components.values():
-            cp.render(self.screen)
-        pygame.display.flip()
-
-    def main_loop(self):
-        """
-        We now use the return value of the call to self.clock.tick to
-        get the time delta between frames.
-        """
-        dt = 0
-        self.clock.tick(self.fps)
-        while not self.done:
-            self.event_loop()
-            self.update(dt)
-            self.render()
-            dt = self.clock.tick(self.fps)/1000.0
+model_path = get_model_path()
 
 
-def main():
-    app = App()
+def take_command():
 
-    app.add_component('camera', Camera(
-        (cfg.CAMERA_WIDTH, cfg.CAMERA_HEIGHT),
-        camera_index=cfg.CAMERA_INDEX))
+    # Feedback to user that GLaDOS is listening
+    print('listening...')
+    #playFile(os.path.dirname(os.path.abspath(__file__))+'/audio/GLaDOS-detect-pass-'+str(randint(1, 20))+'.wav')
 
-    app.add_component('servo', ArmVisualizer(
-       size=(cfg.WIDTH-cfg.CAMERA_WIDTH-10, (cfg.HEIGHT/2)-5),
-        position=(cfg.CAMERA_WIDTH+5, 5)))
+    listener = sr.Recognizer()
+    mic = sr.Microphone()
 
-    app.main_loop()
-    pygame.quit()
-    sys.exit()
+    # Record audio from the mic array
+    with mic as source:
 
+        # Collect ambient noise for filtering
 
-if __name__ == "__main__":
-    main()
+        #listener.adjust_for_ambient_noise(source, duration=1.0)
+        print("Speak... ")
+
+        try:
+            # Record
+            voice = listener.listen(source, timeout=3)
+
+            print("Got it...")
+
+            # Speech to text
+            command = listener.recognize_google(voice)
+            command = command.lower()
+
+            print("I heard: "+command)
+
+            # Save input as file as later training data
+            #timestamp = str(int(dt.datetime.now().timestamp()))
+            # with open("/home/nerdaxic/GLaDOS/collectedSpeech/" + timestamp+" "+command+".wav", "wb") as f:
+            #	f.write(voice.get_wav_data(convert_rate=16000))
+
+            # Remove possible trigger word from input
+            if os.getenv('TRIGGERWORD') in command:
+                command = command.replace(os.getenv('TRIGGERWORD'), '')
+
+            return command
+
+        # No speech was heard
+        except sr.WaitTimeoutError as e:
+            print("Timeout; {0}".format(e))
+
+        # STT API failed to process audio
+        except sr.UnknownValueError:
+            print("Google Speech Recognition could not parse audio")
+            # speak("My speech recognition core could not understand audio")
+
+            #timestamp = str(int(dt.datetime.now().timestamp()))
+            # with open("/home/nerdaxic/GLaDOS/collectedSpeech/" + timestamp+" fail.wav", "wb") as f:
+            #	f.write(voice.get_wav_data(convert_rate=8000))
+
+        # Connection to STT API failed
+        except sr.RequestError as e:
+            print(
+                "Could not request results from Google Speech Recognition service; {0}".format(e))
+
+speech = LiveSpeech(keyphrase=os.getenv('TRIGGERWORD', "hey alexa"), lm=False, kws_threshold=1e-20)
+for phrase in speech:
+    try:
+        # Listen for command
+        command = take_command()
+        # Execute command
+        print(command)
+    except Exception as e:
+        # Something failed
+        print(e)
