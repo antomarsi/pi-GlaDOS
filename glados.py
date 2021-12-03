@@ -1,11 +1,13 @@
 from gladosTTS import GladosTTS
 import speech_recognition as sr
-from pocketsphinx import LiveSpeech
+from pocketsphinx import LiveSpeech, get_model_path
 import time
 import os
 import psutil
 import sys
 import datetime as dt
+
+model_path = get_model_path()
 
 class Glados:
     def __init__(self) -> None:
@@ -29,11 +31,25 @@ class Glados:
                 self.tts.speak("it's been a long time")
                 time.sleep(1.5)
                 self.tts.speak("how have you been")
-
-            speech = LiveSpeech(keyphrase=os.getenv('TRIGGERWORD', "hey alexa"), lm=False, kws_threshold=1e-20)
-            for phrase in speech:
+            if (os.getenv("SKIP_TRIGGER", "False") == "False"):
+                speech = LiveSpeech(
+                    keyphrase=os.getenv('TRIGGERWORD', "hey alexa"),
+                    kws_threshold=1e-20,
+                    lm=False
+                )
+                for phrase in speech:
+                    
+                    try:
+                        # Listen for command
+                        command = self.take_command()
+                        # Execute command
+                        self.process_command(command)
+                    except Exception as e:
+                        # Something failed
+                        print(e)
+            else:
                 try:
-                    # Listen for command
+                        # Listen for command
                     command = self.take_command()
                     # Execute command
                     self.process_command(command)
@@ -46,6 +62,7 @@ class Glados:
 
         # Feedback to user that GLaDOS is listening
         print('listening...')
+        time.sleep(0.3)
         self.tts.playRandom("detect-pass")
 
         listener = sr.Recognizer()
@@ -103,6 +120,8 @@ class Glados:
         
 
     def process_command(self, command):
+        if command is None:
+            return
 
         if 'cancel' in command:
             self.tts.playRandom("cancel")
@@ -113,9 +132,6 @@ class Glados:
         elif 'timer' in command:
             #startTimer(command)
             self.tts.speak("Sure.")
-        elif 'time' in command:
-            #readTime()
-            pass
 
         elif ('should my ' in command or 
             'should I ' in command or
@@ -125,6 +141,12 @@ class Glados:
 
         elif 'joke' in command:
             self.tts.playRandom("jokes")
+
+        elif "time" in command:
+            timer=dt.datetime.now()
+            hour = timer.strftime('%H')
+            minute = timer.strftime('%M')
+            self.tts.playTime(hour, minute)
 
         elif 'who are' in command:
             self.tts.playDefault("intro", 0)

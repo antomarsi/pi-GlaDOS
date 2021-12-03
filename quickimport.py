@@ -3,14 +3,14 @@ import json
 from glob import glob
 import re
 
-folder = "data/audio"
+folder = "data/default"
 
 data = {
     "magic-8-ball":[],
     "jokes": [],
     "clock": {
-        "hour": [],
-        "minute": [],
+        "hour": {},
+        "minute": {},
         "o": "clock/GLaDOS-o-clock.wav",
         "ding": {
             "off": "clock/GLaDOS_Announcer_ding_off.wav",
@@ -23,12 +23,12 @@ data = {
                 "clock/time-comment/GLaDOS-general-3-comment.wav",
                 "clock/time-comment/GLaDOS-general-4-comment.wav",
             ],
-            "hour": [
-                "clock/time-comment/GLaDOS-hour-1-comment.wav",
-                "clock/time-comment/GLaDOS-hour-6-comment.wav",
-                "clock/time-comment/GLaDOS-hour-11-comment.wav",
-                "clock/time-comment/GLaDOS-hour-22-comment.wav",
-            ]
+            "hour": {
+                "1": "clock/time-comment/GLaDOS-hour-1-comment.wav",
+                "6": "clock/time-comment/GLaDOS-hour-6-comment.wav",
+                "11": "clock/time-comment/GLaDOS-hour-11-comment.wav",
+                "22": "clock/time-comment/GLaDOS-hour-22-comment.wav",
+            }
         }
         }
     }
@@ -57,11 +57,15 @@ for file in files:
 
 files = os.listdir(os.path.join(folder, "clock", "hour"))
 for file in files:
-    data["clock"]["hour"].append("clock/hour/"+file)
+    key = file.replace(".wav", "").replace("GLaDOS-", "")
+    key = re.findall(r'\d+', key)
+    data["clock"]["hour"][key[0]] = "clock/hour/"+file
 
 files = os.listdir(os.path.join(folder, "clock", "minute"))
 for file in files:
-    data["clock"]["minute"].append("clock/minute/"+file)
+    key = file.replace(".wav", "").replace("GLaDOS-", "")
+    key = re.findall(r'\d+', key)
+    data["clock"]["minute"][key[0]] = "clock/minute/"+file
 
 export = "data/default.json"
 

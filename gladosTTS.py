@@ -5,7 +5,6 @@ import json
 import uuid
 import random
 import time
-
 class GladosTTS():
     def __init__(self) -> None:
         self.data = os.getenv('TTS_SAMPLE_FOLDER', "data")
@@ -29,14 +28,13 @@ class GladosTTS():
 
     def save_database(self):
         with open(self.phrase_file, 'w') as outfile:
-            json.dump(self.audio_dict, outfile)
+            json.dump(self.audio_dict, outfile, indent=4)
         
 
     def playFile(self, filename):
         wave_obj = sa.WaveObject.from_wave_file(filename)
         play_obj = wave_obj.play()
         play_obj.wait_done()
-        print("finished playing file")
 
     # Turns units etc into speakable text
 
@@ -129,8 +127,39 @@ class GladosTTS():
     def playRandom(self, keyword):
         self.playFile(os.path.join(self.defaul_audio_path, random.choice(self.default_audio_dict[keyword])))
     
-    def playDefault(self, keyword, index = None):
-        if (index is not None):
-            self.playFile(os.path.join(self.defaul_audio_path, self.default_audio_dict[keyword][index]))
+    def playDefaultRandom(self, keyword):
+        keywords = keyword.split("_")
+        if len(keywords) == 1:
+            file = self.default_audio_dict[keyword]
         else:
-            self.playFile(os.path.join(self.defaul_audio_path, self.default_audio_dict[keyword]))
+            file = self.default_audio_dict
+            for key in keywords:
+                file = file[key]
+        self.playFile(os.path.join(self.defaul_audio_path, random.choice(file)))
+
+
+    def playDefault(self, keyword, index = None):
+        keywords = keyword.split("_")
+        if len(keywords) == 1:
+            file = self.default_audio_dict[keyword]
+        else:
+            file = self.default_audio_dict
+            for key in keywords:
+                file = file[key]
+        if (index is not None):
+                file = file[index]
+        self.playFile(os.path.join(self.defaul_audio_path, file))
+
+    def playTime(self, hour, minute):
+        
+        print(hour+":"+minute)
+        self.playDefault("clock_hour_"+hour)
+        self.playDefault("clock_minute_"+minute)
+        r = random.randint(1, 10)
+
+        if (r <= 4):
+            hour = hour.lstrip('0')
+            if self.default_audio_dict["clock"]["time-comment"]["hour"].get(hour) is not None:
+                self.playDefault("clock_time-comment_hour_"+hour)
+            else:
+                self.playDefaultRandom("clock_time-comment_general")
