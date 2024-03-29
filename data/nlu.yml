@@ -1,0 +1,33 @@
+version: "3.1"
+
+nlu:
+- intent: play_music
+  examples: |
+    - Can you play [Bohemian Rhapsody](music_name) by [Queen](band_name)?
+    - How about some [Stairway to Heaven](music_name) by [Led Zeppelin](band_name)?
+    - Play [Hotel California](music_name) by [Eagles](band_name).
+    - I'm in the mood for [Sweet Child o' Mine](music_name) by [Guns N' Roses](band_name).
+    - Can you put on [Imagine](music_name) by [John Lennon](band_name)?
+    - Let's listen to [Smells Like Teen Spirit](music_name) by [Nirvana](band_name).
+    - How about some [Purple Haze](music_name) by [Jimi Hendrix](band_name)?
+    - Play [Thriller](music_name) by [Michael Jackson](band_name).
+    - Can you play [Under Pressure](music_name) by [Queen](band_name) and [David Bowie](band_name)?
+    - Put on [Billie Jean](music_name) by [Michael Jackson](band_name).
+    - I'm in the mood for [Thunderstruck](music_name) by [AC/DC](band_name).
+    - How about some [Boogie Wonderland](music_name) by [Earth, Wind & Fire](band_name)?
+    - Can you play [Livin' on a Prayer](music_name) by [Bon Jovi](band_name)?
+    - Put on [Every Breath You Take](music_name) by [The Police](band_name).
+    - Play [Yesterday](music_name) by [The Beatles](band_name).
+    - Let's listen to [Like a Rolling Stone](music_name) by [Bob Dylan](band_name).
+    - Can you put on [Waterloo Sunset](music_name) by [The Kinks](band_name)?
+    - I'm in the mood for [Wonderwall](music_name) by [Oasis](band_name).
+    - How about some [Highway to Hell](music_name) by [AC/DC](band_name)?
+    - Play [Creep](music_name) by [Radiohead](band_name).
+
+- intent: thank
+  examples: |
+    - thanks
+    - thank you
+    - appreciated
+    - appreciate it
+    - many thanks

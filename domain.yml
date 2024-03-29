@@ -1,0 +1,20 @@
+version: "3.1"
+
+intents:
+  - play_music
+  - thank
+
+
+entities:
+  - music_name
+  - band_name
+
+actions:
+  - action_extract_music
+
+responses:
+  utter_play_music:
+  - text: "Say that you will play the music \"{music_name}\" from the band \"{band_name}\", don't forget to mention the music name and the band name"
+
+  utter_thanks:
+  - text: "No problem"
