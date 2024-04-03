@@ -7,7 +7,6 @@ from utils.text.numbers import normalize_numbers
 from utils.text.symbols import phonemes_set
 
 from dp.phonemizer import Phonemizer
-import torch
 
 # Regular expression matching whitespace:
 _whitespace_re = re.compile(r'\s+')

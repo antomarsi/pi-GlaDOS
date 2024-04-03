@@ -1,5 +1,4 @@
 import torch
-import numpy as np
 from utils.tools import prepare_text
 from scipy.io.wavfile import write
 import time
@@ -11,6 +10,8 @@ from nltk import download
 from nltk.tokenize import sent_tokenize
 from sys import modules as mod
 from pathlib import Path
+import simpleaudio as sa
+import os
 
 try:
     import winsound
@@ -18,13 +19,15 @@ except ImportError:
     from subprocess import call
 
 kwargs = {
-    'stdout':subprocess.PIPE,
-    'stderr':subprocess.PIPE,
-    'stdin':subprocess.PIPE
+    'stdout': subprocess.PIPE,
+    'stderr': subprocess.PIPE,
+    'stdin': subprocess.PIPE
 }
 
+
 class TTSRunner:
-    def __init__(self, use_p1: bool=False, log: bool=False):
+    def __init__(self, use_p1: bool = False, log: bool = False):
+
         self.log = log
         if use_p1:
             self.emb = torch.load('models/emb/glados_p1.pt')
@@ -40,15 +43,18 @@ class TTSRunner:
         else:
             self.device = 'cpu'
 
-        # Load models
+    def load(self):
         self.glados = torch.jit.load('models/glados-new.pt')
-        self.vocoder = torch.jit.load('models/vocoder-gpu.pt', map_location=self.device)
+        self.vocoder = torch.jit.load(
+            'models/vocoder-gpu.pt', map_location=self.device)
         for i in range(2):
-            init = self.glados.generate_jit(prepare_text(str(i)), self.emb, 1.0)
+            init = self.glados.generate_jit(
+                prepare_text(str(i)), self.emb, 1.0)
             init_mel = init['mel_post'].to(self.device)
             init_vo = self.vocoder(init_mel)
+        download('punkt', quiet=self.log)
 
-    def run_tts(self, text, alpha: float=1.0) -> AudioSegment:
+    def run_tts(self, text, alpha: float = 1.0) -> AudioSegment:
         x = prepare_text(text)
 
         with torch.no_grad():
@@ -57,7 +63,8 @@ class TTSRunner:
             old_time = time.time()
             tts_output = self.glados.generate_jit(x, self.emb, alpha)
             if self.log:
-                print("Forward Tacotron took " + str((time.time() - old_time) * 1000) + "ms")
+                print("Forward Tacotron took " +
+                      str((time.time() - old_time) * 1000) + "ms")
 
             # Use HiFiGAN as vocoder to make output sound like GLaDOS
             old_time = time.time()
@@ -77,9 +84,10 @@ class TTSRunner:
             return sound
 
     def speak_one_line(self, audio, name: str):
-        audio.export(name, format = "wav")
+        audio.export(name, format="wav")
         if 'winsound' in mod:
-            winsound.PlaySound(name, winsound.SND_FILENAME | winsound.SND_ASYNC)
+            winsound.PlaySound(name, winsound.SND_FILENAME |
+                               winsound.SND_ASYNC)
         else:
             try:
                 subprocess.Popen(["play", name], **kwargs)
@@ -89,10 +97,8 @@ class TTSRunner:
                 except FileNotFoundError:
                     subprocess.Popen(["pw-play", name], **kwargs)
 
-
-    def speak(self, text, alpha: float=1.0, save: bool=False, delay: float=0.1):
-        print("Text: {}".format(text))
-        download('punkt',quiet=self.log)
+    def speak(self, text, alpha: float = 1.0, save: bool = False, delay: float = 0.1):
+        print(f"Speaking: {text}")
         sentences = sent_tokenize(text)
         audio = self.run_tts(sentences[0])
         pause = AudioSegment.silent(duration=delay)
@@ -125,10 +131,16 @@ class TTSRunner:
         else:
             time.sleep(old_dur + 0.1)
 
-        audio.export("output/output.wav", format = "wav")
+        audio.export("output/output.wav", format="wav")
         time_left = old_dur - time.time() + old_time
         if time_left >= 0:
             time.sleep(time_left + delay)
+
+    def play_audio(self, filename):
+        wave_obj = sa.WaveObject.from_wave_file(os.path.join("data", filename))
+        play_obj = wave_obj.play()
+        play_obj.wait_done()
+
 
 if __name__ == "__main__":
     glados = TTSRunner(False, True)

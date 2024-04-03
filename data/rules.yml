@@ -1,8 +1,0 @@
-version: "3.1"
-
-rules:
-
-- rule: Say that you will play the music every time the user ask for it
-  steps:
-  - intent: play_music
-  - action: utter_play_music

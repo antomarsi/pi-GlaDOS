@@ -110,3 +110,4 @@ data/audios
 .vscode
 output/*
 !output/.gitkeep
+models/*.tar.gz
