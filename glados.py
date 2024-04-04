@@ -4,19 +4,21 @@ import speech_recognition as sr
 from intent import IntentClassifier
 from gemini import Gemini
 from actions.out_of_scope_action import OutOfScopeAction
-from actions.play_music_action import PlayMusicAction
+from actions.music_action import MusicAction
 from actions.give_time_action import GiveTimeAction
 import threading
+from spotify import SpotifyClient
 
 
 class Glados:
 
-    def __init__(self, model, gemini_api_key) -> None:
+    def __init__(self, model, gemini_api_key, spotify_creds) -> None:
         self.intent = IntentClassifier(model=model)
         self.gemini = Gemini(gemini_api_key)
         self.tts = TTSRunner(False, True)
         self.is_timeout = False
-    
+        
+
     def load(self):
         threads = []
         load_actions = [
@@ -32,10 +34,15 @@ class Glados:
         for t in threads:
             t.join()
 
+        music_action = MusicAction(self.gemini, self.tts, self.sp)
+
         self.scopes = {
-            "out_of_scope": OutOfScopeAction(self.gemini, self.tts),
-            "play_music": PlayMusicAction(self.gemini, self.tts),
-            "give_time": GiveTimeAction(self.gemini, self.tts),
+            "out_of_scope": {"action": OutOfScopeAction(self.gemini, self.tts)},
+            "play_music": {"action": music_action, "command": "play_music"},
+            "next_music": {"action": music_action, "command": "next_music"},
+            "stop_music": {"action": music_action, "command": "stop_music"},
+            "resume_music": {"action": music_action, "command": "resume_music"},
+            "give_time": {"action": GiveTimeAction(self.gemini, self.tts)},
         }
 
     async def take_command(self):
@@ -68,7 +75,12 @@ class Glados:
 
                 if (response["intent"]):
                     if response["intent"] in self.scopes:
-                        self.scopes[response["intent"]].run(response)
+                        scope = self.scopes[response["intent"]]
+                        if "command" in scope:
+                            command = getattr(scope["action"], scope["command"])
+                            command(response)
+                        else:
+                            scope["action"].run(response)
                     else:
                         raise Exception("no scope found")
 
@@ -78,7 +90,8 @@ class Glados:
                 print("Timeout; {0}".format(e))
             except Exception as e:
                 print(e)
-                result = self.gemini.send_message("Say that something went wrong")
+                result = self.gemini.send_message(
+                    "Say that something went wrong")
                 self.tts.speak(result)
 
     async def run(self):

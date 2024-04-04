@@ -26,6 +26,76 @@ nlu:
     - play [numb](music_name) from [linkin park](band_name)
     - play [chop suey](music_name) from [system of a down](band_name)
 
+- intent: stop_music
+  examples: |
+    - Pause the music, please.
+    - Can you stop the music for a moment?
+    - Pause the song.
+    - Could you mute the music?
+    - Stop the music playback.
+    - Pause playback.
+    - Stop music
+    - Halt the music.
+    - Silence the music.
+    - Put a pause on the music.
+    - Can you pause the song for now?
+    - Stop the music, I need a break.
+    - Pause that track.
+    - Could you stop playing the music?
+    - Pause the audio.
+    - I'd like to pause the music.
+    - Stop playing the song.
+    - Can you halt the music for a minute?
+    - Pause the current track.
+    - I need to take a break from the music.
+    - Could you please pause the music playback?
+
+- intent: next_music
+  examples: |
+    - Skip to the next track.
+    - Play the next song.
+    - Next track, please.
+    - Move to the next music.
+    - Skip this song.
+    - Can you play the following track?
+    - Next song, please.
+    - Advance to the next track.
+    - Move on to the next music.
+    - Play the next one.
+    - Skip to the next song.
+    - Next track in the queue.
+    - Can you play the next tune?
+    - Move forward to the next track.
+    - Play the next track on the list.
+    - Skip to the next tune.
+    - Advance to the next song.
+    - Next in line, please.
+    - Move to the next song.
+    - Can you play the subsequent track?
+
+- intent: resume_music
+  examples: |
+    - Resume the music.
+    - Play the song again.
+    - Continue playing the music.
+    - Start the music where it left off.
+    - Can you resume the song?
+    - Play the last track.
+    - Continue the music playback.
+    - Restart the song.
+    - Pick up where we left off.
+    - Play from where it stopped.
+    - Resume playback.
+    - Continue the last song.
+    - Start playing again.
+    - Play the paused music.
+    - Can you resume the last track?
+    - Continue the previous song.
+    - Play the music that was paused.
+    - Restart the last tune.
+    - Pick up the music where it stopped.
+    - Resume the paused song.
+
 - intent: give_time
   examples: |
     - can you tell me what time it is
