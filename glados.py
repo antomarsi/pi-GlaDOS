@@ -17,6 +17,7 @@ class Glados:
         self.gemini = Gemini(gemini_api_key)
         self.tts = TTSRunner(False, True)
         self.is_timeout = False
+        self.sp = SpotifyClient(spotify_creds[0], spotify_creds[1])
         
 
     def load(self):

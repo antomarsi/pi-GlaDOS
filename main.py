@@ -5,8 +5,8 @@ import asyncio
 import glob
 
 if __name__ == "__main__":
-    os.environ.pop("NLU_MODEL")
-    os.environ.pop("MODELS_PATH")
+    del os.environ["NLU_MODEL"]
+    del os.environ["MODELS_PATH"]
     load_dotenv()
     nlu_path = os.getenv("NLU_MODEL", None)
     model_folder = os.getenv("MODELS_PATH", None)
