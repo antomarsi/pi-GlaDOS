@@ -5,8 +5,10 @@ import asyncio
 import glob
 
 if __name__ == "__main__":
-    del os.environ["NLU_MODEL"]
-    del os.environ["MODELS_PATH"]
+    if os.getenv("NLU_MODEL"):
+        del os.environ["NLU_MODEL"]
+    if os.getenv("MODEL_PATH"):
+        del os.environ["MODELS_PATH"]
     load_dotenv()
     nlu_path = os.getenv("NLU_MODEL", None)
     model_folder = os.getenv("MODELS_PATH", None)
@@ -20,10 +22,16 @@ if __name__ == "__main__":
     model_path = os.path.join(model_folder, nlu_path)
     api_key = os.getenv("GEMINI_API_KEY")
     print(f"Initializing... using model: {model_path}")
-    glados = Glados(gemini_api_key=api_key, model=model_path, spotify_creds=[
-        os.getenv("SPOTIFY_CLIENT_ID"),
-        os.getenv("SPOTIFY_CLIENT_SECRET"),
-    ])
+    glados = Glados(
+            gemini_api_key=api_key,
+            model=model_path,
+            spotify_creds=[
+                os.getenv("SPOTIFY_CLIENT_ID"),
+                os.getenv("SPOTIFY_CLIENT_SECRET"),
+            ],
+            openweather_apikey=os.getenv("OPENWEATHER_API_KEY"),
+            trigger_word=["hey glados", "hey gladys"]
+        )
     print("Loading")
     glados.load()
     print("Running")

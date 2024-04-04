@@ -103,6 +103,29 @@ nlu:
     - what is the time
     - what time is it
 
+- intent: give_weather
+  examples: |
+    - What's the weather like today?
+    - Can you tell me the weather forecast for today?
+    - How's the weather looking outside?
+    - Is it going to rain today?
+    - Do I need an umbrella for today?
+    - Will it be sunny today?
+    - What's the temperature for today?
+    - Can you give me a weather update for today?
+    - Should I wear a jacket today?
+    - What's the forecast for today?
+    - Do I need to bundle up today?
+    - Will it be hot or cold today?
+    - How's the weather shaping up for today?
+    - Should I expect any storms today?
+    - Can you check the weather for today?
+    - Do I need to worry about snow today?
+    - Will it be windy today?
+    - What's the weather forecast like for today?
+    - Can you let me know if it's going to be humid today?
+    - Will it be a clear day today?
+
 - intent: out_of_scope
   examples: |
     - I am asking you an out of scope question

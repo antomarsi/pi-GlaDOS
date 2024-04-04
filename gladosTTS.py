@@ -97,44 +97,52 @@ class TTSRunner:
                 except FileNotFoundError:
                     subprocess.Popen(["pw-play", name], **kwargs)
 
-    def speak(self, text, alpha: float = 1.0, save: bool = False, delay: float = 0.1):
+    def speak(self, text: str, alpha: float = 1.0, save: bool = False, delay: float = 0.1):
         print(f"Speaking: {text}")
-        sentences = sent_tokenize(text)
-        audio = self.run_tts(sentences[0])
-        pause = AudioSegment.silent(duration=delay)
-        old_line = AudioSegment.silent(duration=1.0) + audio
-        self.speak_one_line(old_line, "output/old_line.wav")
-        old_time = time.time()
-        old_dur = old_line.duration_seconds
-        new_dur = old_dur
-        if len(sentences) > 1:
-            for idx in range(1, len(sentences)):
-                if idx % 2 == 1:
-                    new_line = self.run_tts(sentences[idx])
-                    audio = audio + pause + new_line
-                    new_dur = new_line.duration_seconds
-                else:
-                    old_line = self.run_tts(sentences[idx])
-                    audio = audio + pause + old_line
-                    new_dur = old_line.duration_seconds
-                time_left = old_dur - time.time() + old_time
-                if time_left <= 0 and self.log:
-                    print("Processing is slower than realtime!")
-                else:
-                    time.sleep(time_left + delay)
-                if idx % 2 == 1:
-                    self.speak_one_line(new_line, "output/new_line.wav")
-                else:
-                    self.speak_one_line(old_line, "output/old_line.wav")
-                old_time = time.time()
-                old_dur = new_dur
-        else:
-            time.sleep(old_dur + 0.1)
+        text_splited = text.splitlines()
+        for line in text_splited:
+            if line == "":
+                time.sleep(0.2)
+                continue
+            sentences = sent_tokenize(line)
+            audio = self.run_tts(sentences[0])
+            pause = AudioSegment.silent(duration=delay)
+            old_line = AudioSegment.silent(duration=1.0) + audio
+            self.speak_one_line(old_line, "output/old_line.wav")
+            old_time = time.time()
+            old_dur = old_line.duration_seconds
+            new_dur = old_dur
+            if len(sentences) > 1:
+                for idx in range(1, len(sentences)):
+                    if idx % 2 == 1:
+                        new_line = self.run_tts(sentences[idx])
+                        audio = audio + pause + new_line
+                        new_dur = new_line.duration_seconds
+                    else:
+                        old_line = self.run_tts(sentences[idx])
+                        audio = audio + pause + old_line
+                        new_dur = old_line.duration_seconds
+                    time_left = old_dur - time.time() + old_time
+                    if time_left <= 0 and self.log:
+                        print("Processing is slower than realtime!")
+                    else:
+                        time.sleep(time_left + delay)
+                    if idx % 2 == 1:
+                        self.speak_one_line(new_line, "output/new_line.wav")
+                    else:
+                        self.speak_one_line(old_line, "output/old_line.wav")
+                    old_time = time.time()
+                    old_dur = new_dur
+            else:
+                time.sleep(old_dur + 0.1)
 
-        audio.export("output/output.wav", format="wav")
-        time_left = old_dur - time.time() + old_time
-        if time_left >= 0:
-            time.sleep(time_left + delay)
+            audio.export("output/output.wav", format="wav")
+            time_left = old_dur - time.time() + old_time
+            if time_left >= 0:
+                time.sleep(time_left + delay)
+            if len(text_splited) > 1:
+                time.sleep(0.1)
+            
 
     def play_audio(self, filename):
         wave_obj = sa.WaveObject.from_wave_file(os.path.join("data", filename))

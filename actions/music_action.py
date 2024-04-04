@@ -14,6 +14,7 @@ class MusicAction():
         self.sp = spotify_client
 
     def play_music(self, rasa_response):
+        self.sp.update_device()
         band_name = None
         music_name = None
         for entity in rasa_response["entities"]:
@@ -29,18 +30,21 @@ class MusicAction():
         self.sp.play_music(music_name, band_name)
     
     def stop_music(self, _):
+        self.sp.update_device()
         text = self.gemini.send_message(
             f"say that you gonna stop the music")
         self.tts.speak(text)
         self.sp.stop_music()
 
     def next_music(self, _):
+        self.sp.update_device()
         text = self.gemini.send_message(
             f"say that you gonna play the next music")
         self.tts.speak(text)
         self.sp.next_music()
         
     def resume_music(self, _):
+        self.sp.update_device()
         text = self.gemini.send_message(
             f"say that you gonna resume playing the music, don't mention anything about the music name or band")
         self.tts.speak(text)

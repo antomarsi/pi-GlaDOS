@@ -1,0 +1,3 @@
+
+class SpotifyDeviceNotFoundError(Exception):
+    pass

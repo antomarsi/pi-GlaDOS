@@ -1,6 +1,7 @@
 import json
 from spotipy.oauth2 import SpotifyOAuth
 import spotipy
+from exceptions.spotify_exceptions import SpotifyDeviceNotFoundError
 
 
 class SpotifyClient:
@@ -27,8 +28,10 @@ class SpotifyClient:
             if device["is_active"] is True:
                 current_device = device["id"]
                 break
-        if current_device is None:
+        if current_device is None and len(devices["devices"]):
             current_device = devices["devices"][0]["id"]
+        if current_device is None:
+            raise SpotifyDeviceNotFoundError("Spotify device not found")
         self.selected_device = current_device
 
     def search_music(self, music_name, band_name):
@@ -38,17 +41,13 @@ class SpotifyClient:
 
     def play_music(self, music, band):
         result = self.search_music(music, band)
-        self.update_device()
         self.sp.start_playback(device_id=self.selected_device, uris=[result])
 
     def next_music(self):
-        self.update_device()
         self.sp.next_track(device_id=self.selected_device)
     
     def stop_music(self):
-        self.update_device()
         self.sp.pause_playback(device_id=self.selected_device)
     
     def resume_music(self):
-        self.update_device()
         self.sp.start_playback(device_id=self.selected_device)
