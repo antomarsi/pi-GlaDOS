@@ -106,3 +106,8 @@ venv.bak/
 data/voices.json
 data/audios
 .spotipyoauthcache
+.rasa
+.vscode
+output/*
+!output/.gitkeep
+models/*.tar.gz

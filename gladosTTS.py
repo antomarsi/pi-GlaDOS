@@ -1,165 +1,150 @@
-import os
-import simpleaudio as sa
-import requests
-import json
-import uuid
-import random
+import torch
+from utils.tools import prepare_text
+from scipy.io.wavfile import write
 import time
-class GladosTTS():
-    def __init__(self) -> None:
-        self.data = os.getenv('TTS_SAMPLE_FOLDER', "data")
+import tempfile
+import subprocess
+from pydub import AudioSegment
+from pydub.playback import play
+from nltk import download
+from nltk.tokenize import sent_tokenize
+from sys import modules as mod
+from pathlib import Path
+import simpleaudio as sa
+import os
+
+try:
+    import winsound
+except ImportError:
+    from subprocess import call
+
+kwargs = {
+    'stdout': subprocess.PIPE,
+    'stderr': subprocess.PIPE,
+    'stdin': subprocess.PIPE
+}
 
 
-        self.audio_path = os.path.join(self.data, "audios")
-        if not os.path.exists(self.audio_path):
-            os.makedirs(self.audio_path)
-        self.phrase_file = os.path.join(self.data, "voices.json")
-        self.audio_dict = {}
+class TTSRunner:
+    def __init__(self, use_p1: bool = False, log: bool = False):
 
-        if (not os.path.isfile(self.phrase_file)):
-            self.save_database()
+        self.log = log
+        if use_p1:
+            self.emb = torch.load('models/emb/glados_p1.pt')
         else:
-            with open(self.phrase_file) as f:
-                self.audio_dict = json.load(f)
+            self.emb = torch.load('models/emb/glados_p2.pt')
+        Path("output").mkdir(exist_ok=True)
 
-        self.defaul_audio_path = os.path.join(self.data, "default")
-        with open(os.path.join(self.data, "default.json")) as f:
-            self.default_audio_dict = json.load(f)
+        # Select the device
+        if torch.cuda.is_available():
+            self.device = 'cuda'
+        elif torch.is_vulkan_available():
+            self.device = 'vulkan'
+        else:
+            self.device = 'cpu'
 
-    def save_database(self):
-        with open(self.phrase_file, 'w') as outfile:
-            json.dump(self.audio_dict, outfile, indent=4)
-        
+    def load(self):
+        self.glados = torch.jit.load('models/glados-new.pt')
+        self.vocoder = torch.jit.load(
+            'models/vocoder-gpu.pt', map_location=self.device)
+        for i in range(2):
+            init = self.glados.generate_jit(
+                prepare_text(str(i)), self.emb, 1.0)
+            init_mel = init['mel_post'].to(self.device)
+            init_vo = self.vocoder(init_mel)
+        download('punkt', quiet=self.log)
 
-    def playFile(self, filename):
-        wave_obj = sa.WaveObject.from_wave_file(filename)
+    def run_tts(self, text, alpha: float = 1.0) -> AudioSegment:
+        x = prepare_text(text)
+
+        with torch.no_grad():
+
+            # Generate generic TTS-output
+            old_time = time.time()
+            tts_output = self.glados.generate_jit(x, self.emb, alpha)
+            if self.log:
+                print("Forward Tacotron took " +
+                      str((time.time() - old_time) * 1000) + "ms")
+
+            # Use HiFiGAN as vocoder to make output sound like GLaDOS
+            old_time = time.time()
+            mel = tts_output['mel_post'].to(self.device)
+            audio = self.vocoder(mel)
+            if self.log:
+                print("HiFiGAN took " + str((time.time() - old_time) * 1000) + "ms")
+
+            # Normalize audio to fit in wav-file
+            audio = audio.squeeze()
+            audio = audio * 32768.0
+            audio = audio.cpu().numpy().astype('int16')
+            output_file = tempfile.TemporaryFile()
+            write(output_file, 22050, audio)
+            sound = AudioSegment.from_wav(output_file)
+            output_file.close()
+            return sound
+
+    def speak_one_line(self, audio, name: str):
+        audio.export(name, format="wav")
+        if 'winsound' in mod:
+            winsound.PlaySound(name, winsound.SND_FILENAME |
+                               winsound.SND_ASYNC)
+        else:
+            try:
+                subprocess.Popen(["play", name], **kwargs)
+            except FileNotFoundError:
+                try:
+                    subprocess.Popen(["aplay", name], **kwargs)
+                except FileNotFoundError:
+                    subprocess.Popen(["pw-play", name], **kwargs)
+
+    def speak(self, text, alpha: float = 1.0, save: bool = False, delay: float = 0.1):
+        print(f"Speaking: {text}")
+        sentences = sent_tokenize(text)
+        audio = self.run_tts(sentences[0])
+        pause = AudioSegment.silent(duration=delay)
+        old_line = AudioSegment.silent(duration=1.0) + audio
+        self.speak_one_line(old_line, "output/old_line.wav")
+        old_time = time.time()
+        old_dur = old_line.duration_seconds
+        new_dur = old_dur
+        if len(sentences) > 1:
+            for idx in range(1, len(sentences)):
+                if idx % 2 == 1:
+                    new_line = self.run_tts(sentences[idx])
+                    audio = audio + pause + new_line
+                    new_dur = new_line.duration_seconds
+                else:
+                    old_line = self.run_tts(sentences[idx])
+                    audio = audio + pause + old_line
+                    new_dur = old_line.duration_seconds
+                time_left = old_dur - time.time() + old_time
+                if time_left <= 0 and self.log:
+                    print("Processing is slower than realtime!")
+                else:
+                    time.sleep(time_left + delay)
+                if idx % 2 == 1:
+                    self.speak_one_line(new_line, "output/new_line.wav")
+                else:
+                    self.speak_one_line(old_line, "output/old_line.wav")
+                old_time = time.time()
+                old_dur = new_dur
+        else:
+            time.sleep(old_dur + 0.1)
+
+        audio.export("output/output.wav", format="wav")
+        time_left = old_dur - time.time() + old_time
+        if time_left >= 0:
+            time.sleep(time_left + delay)
+
+    def play_audio(self, filename):
+        wave_obj = sa.WaveObject.from_wave_file(os.path.join("data", filename))
         play_obj = wave_obj.play()
         play_obj.wait_done()
 
-    # Turns units etc into speakable text
 
-    def cleanTTSLine(self, line):
-        line = line.replace("°C", "degrees celcius")
-        line = line.replace("°", "degrees")
-        line = line.replace("hPa", "hectopascals")
-        line = line.replace("% (RH)", "percent")
-        line = line.replace("g/m³", "grams per cubic meter")
-        line = line.replace("sauna", "incinerator")
-        line = line.lower()
-
-        return line
-
-    # Cleans filename for the sample
-
-    def cleanTTSFile(self, line):
-
-        filename = self.cleanTTSLine(line).replace(" ", "-")
-        filename = filename.replace("!", "")
-        filename = filename.replace("°c", "degrees celcius")
-        filename = filename.replace(",", "-")
-
-        return filename
-
-    # Return the path of a TTS sample if found in the library
-
-    def checkTTSLib(self, line):
-        filename = self.audio_dict.get(self.cleanTTSFile(line))
-        if (filename is not None):
-            return os.path.join(self.audio_path, filename)
-        return False
-
-    # Get GLaDOS TTS Sample over the online API
-
-    def fetchTTSSample(self, line, wait=True):
-        filename = uuid.uuid4().hex + ".wav"
-        data = {
-            'text': line
-        }
-        headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:43.0) Gecko/20100101 Firefox/43.0'}
-
-        max_retry = 30
-        retries = 0
-        success = False
-        while retries < max_retry and success is False:
-            try:
-                response = requests.get('https://glados.c-net.org/generate', params=data, headers=headers)
-                success = True
-            except Exception as e:
-                time.sleep(0.5)
-                retries += 1
-        
-        file_path = os.path.join(self.audio_path, filename)
-        key = self.cleanTTSFile(line)
-
-        self.audio_dict[key] = filename
-
-        with open(file_path, 'wb') as f:
-            f.write(response.content)
-        self.save_database()
-        return  os.path.join(self.audio_path, filename)
-
-    # Speak out the line
-    def speak(self, line):
-
-        # Limitation of the TTS API
-        if(len(line) < 255):
-
-            file = self.checkTTSLib(line)
-
-            # Check if file exists
-            if file:
-                self.playFile(file)
-                print(line)
-
-            # Else generate file
-            else:
-                print("File not exist, generating...")
-
-                # Play "hold on"
-                self.playRandom("wait")
-
-                # Try to get wave-file from https://glados.c-net.org/
-                # Save line to TTS-folder
-                file_line = self.fetchTTSSample(line)
-                if(file_line):
-                    self.playFile(file_line)
-
-    def playRandom(self, keyword):
-        self.playFile(os.path.join(self.defaul_audio_path, random.choice(self.default_audio_dict[keyword])))
-    
-    def playDefaultRandom(self, keyword):
-        keywords = keyword.split("_")
-        if len(keywords) == 1:
-            file = self.default_audio_dict[keyword]
-        else:
-            file = self.default_audio_dict
-            for key in keywords:
-                file = file[key]
-        self.playFile(os.path.join(self.defaul_audio_path, random.choice(file)))
-
-
-    def playDefault(self, keyword, index = None):
-        keywords = keyword.split("_")
-        if len(keywords) == 1:
-            file = self.default_audio_dict[keyword]
-        else:
-            file = self.default_audio_dict
-            for key in keywords:
-                file = file[key]
-        if (index is not None):
-                file = file[index]
-        self.playFile(os.path.join(self.defaul_audio_path, file))
-
-    def playTime(self, hour, minute):
-        
-        print(hour+":"+minute)
-        self.playDefault("clock_hour_"+hour)
-        self.playDefault("clock_minute_"+minute)
-        r = random.randint(1, 10)
-
-        if (r <= 4):
-            hour = hour.lstrip('0')
-            if self.default_audio_dict["clock"]["time-comment"]["hour"].get(hour) is not None:
-                self.playDefault("clock_time-comment_hour_"+hour)
-            else:
-                self.playDefaultRandom("clock_time-comment_general")
+if __name__ == "__main__":
+    glados = TTSRunner(False, True)
+    while True:
+        text = input("Input: ")
+        if len(text) > 0:
+            glados.speak(text, True)
