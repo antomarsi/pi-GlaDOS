@@ -25,19 +25,9 @@ class Glados:
         
 
     def load(self):
-        threads = []
-        load_actions = [
-            self.intent.load,
-            self.gemini.load,
-            self.tts.load
-        ]
-        for action in load_actions:
-            x = threading.Thread(target=action, args=())
-            threads.append(x)
-            x.start()
-
-        for t in threads:
-            t.join()
+        self.intent.load()
+        self.gemini.load()
+        self.tts.load()
 
         music_action = MusicAction(self.gemini, self.tts, self.sp)
 
