@@ -102,7 +102,7 @@ class TTSRunner:
         text_splited = text.splitlines()
         for line in text_splited:
             if line == "":
-                time.sleep(0.2)
+                time.sleep(0.1)
                 continue
             sentences = sent_tokenize(line)
             audio = self.run_tts(sentences[0])

@@ -38,7 +38,8 @@ class Glados:
             "stop_music": {"action": music_action, "command": "stop_music"},
             "resume_music": {"action": music_action, "command": "resume_music"},
             "give_time": {"action": GiveTimeAction(self.gemini, self.tts)},
-            "give_weather": {"action": WeatherAction(self.gemini, self.tts, self.openweather_apikey)}
+            "give_weather": {"action": WeatherAction(self.gemini, self.tts, self.openweather_apikey)},
+            "nlu_fallback": {"action": OutOfScopeAction(self.gemini, self.tts)}
         }
 
     async def take_command(self):
@@ -64,7 +65,7 @@ class Glados:
                     self.tts.play_audio("response_audio.wav")
                     while True:
                         print('listening...')
-                        voice = listener.listen(source, timeout=3)
+                        voice = listener.listen(source, timeout=5)
                         command = listener.recognize_google(voice)
                         command = command.lower()
                         if command is None:

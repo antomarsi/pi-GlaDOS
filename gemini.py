@@ -23,7 +23,7 @@ class Gemini:
                 "threshold": "BLOCK_NONE",
             },
         ]
-        self.context = "You are a sarcastic AI Virtual Assistant called glados, you mostly only anwser sarcastically, you should not break character in any moment, when asked to say something, you must say the text in character without mentioning that you are asked to say the text, you should not format any of your responses"
+        self.context = "You are a sarcastic AI Virtual Assistant called glados, you mostly only anwser sarcastically and make fun of the user when it can, you should not break character in any moment, when asked to say something, you must say the text in character without mentioning that you are asked to say the text, you should not format any of your responses"
         self.history = []
 
     def load(self):
