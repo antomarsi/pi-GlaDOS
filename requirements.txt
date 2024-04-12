@@ -63,7 +63,7 @@ h11==0.14.0
 h5py==3.10.0
 httptools==0.6.1
 humanfriendly==10.0
-idna==3.6
+idna==3.7
 inflect==7.2.0
 jax==0.4.26
 Jinja2==3.1.3
