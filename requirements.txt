@@ -186,7 +186,7 @@ tzdata==2024.1
 tzlocal==5.2
 ujson==5.9.0
 Unidecode==1.3.8
-urllib3==2.2.1
+urllib3==2.2.2
 wasabi==1.1.2
 wcwidth==0.2.13
 weasel==0.3.4
